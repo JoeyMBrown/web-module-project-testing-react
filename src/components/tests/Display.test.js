@@ -1,17 +1,67 @@
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
+import Display from '../Display';
 
+import mockFetchShow from './../../api/fetchShow';
+jest.mock('./../../api/fetchShow');
 
+const testShow = {
+    name: 'showName',
+    summary: 'showSummary',
+    seasons: [{id: '1', name: 'season 1', episodes: [{id: '1', image: null, name: 'name', season: 'name', number: 'name', summary: 'name', runtime: 'name'}]}, {id:'2', name: 'season 2', episodes: []}]
+}
 
+test('Display component renders without errors', () => {
+    render(<Display />);
+});
 
+test('Show component renders when fetch button is clicked', async () => {
+    mockFetchShow.mockResolvedValueOnce(testShow)
 
+    render(<Display />)
 
+    const fetchButton = screen.getByRole('button');
+    userEvent.click(fetchButton);
 
+    await waitFor(() => {
+        const showDiv = screen.queryByTestId('show-container');
+        expect(showDiv).toBeInTheDocument();
+    })
+})
 
+test('Select options after fetch button press equals amount of seasons in data', async () => {
+    mockFetchShow.mockResolvedValueOnce(testShow)
 
+    render(<Display />)
 
+    const fetchButton = screen.getByRole('button');
+    userEvent.click(fetchButton);
 
+    await waitFor(() => {
+        const selectSeason = screen.getByLabelText('Select A Season');
+        userEvent.click(selectSeason);
 
+        const seasons = screen.queryAllByTestId('season-option');
+        expect(seasons).toHaveLength(2);
+    })
+})
 
+test('When fetch button is pressed, calls onClick function', async () => {
+    mockFetchShow.mockResolvedValueOnce(testShow)
+    const optionalFunction = jest.fn();
+
+    render(<Display displayFunc={optionalFunction}/>)
+
+    const fetchButton = screen.getByRole('button');
+    userEvent.click(fetchButton);
+
+    await waitFor(() => {
+        expect(optionalFunction).toBeCalledTimes(1);
+    })
+
+})
 
 ///Tasks:
 //1. Add in nessisary imports and values to establish the testing suite.
